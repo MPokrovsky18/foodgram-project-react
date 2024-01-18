@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from recipes.models import Recipe
+
 MAX_CHARFIELD_LENGTH = 150
 MAX_EMAIL_LENGTH = 254
 
@@ -19,6 +21,20 @@ class FoodgramUser(AbstractUser):
         symmetrical=False,
         related_name='subscribers',
         verbose_name='Подписки'
+    )
+    favorite_recipes = models.ManyToManyField(
+        Recipe,
+        related_name='favorited_by',
+        blank=True,
+        null=True,
+        verbose_name='Избранные рецепты'
+    )
+    shopping_list = models.ManyToManyField(
+        Recipe,
+        related_name='added_to_shopping_list_by',
+        blank=True,
+        null=True,
+        verbose_name='Список покупок'
     )
 
     USERNAME_FIELD = 'email'
