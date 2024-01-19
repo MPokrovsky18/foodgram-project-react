@@ -25,15 +25,11 @@ class FoodgramUser(AbstractUser):
     favorite_recipes = models.ManyToManyField(
         Recipe,
         related_name='favorited_by',
-        blank=True,
-        null=True,
         verbose_name='Избранные рецепты'
     )
     shopping_list = models.ManyToManyField(
         Recipe,
         related_name='added_to_shopping_list_by',
-        blank=True,
-        null=True,
         verbose_name='Список покупок'
     )
 

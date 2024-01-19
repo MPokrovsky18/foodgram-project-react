@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 User = get_user_model()
 
@@ -34,7 +36,8 @@ class ArchivedIngredient(Ingredient):
         verbose_name='Архивировано',
     )
 
-    class Meta(Ingredient.Meta):
+    class Meta:
+        ordering = ('name',)
         verbose_name = 'архивный ингредиент'
         verbose_name_plural = 'Архивные ингредиенты'
 
@@ -51,10 +54,12 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Автор',
+        related_name='recipes',
+        verbose_name='Автор рецепта',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
+        through='RecipeIngredient',
         related_name='recipes',
         verbose_name='Ингредиенты'
     )
@@ -65,10 +70,39 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        default_related_name = 'recipes'
         ordering = ('-pub_date',)
         verbose_name = 'рецепт'
         verbose_name_plural = 'Рецепты'
 
     def __str__(self) -> str:
         return self.name
+
+
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE
+    )
+    quantity = models.FloatField('Количество')
+
+
+@receiver(pre_delete, sender=Ingredient)
+def archive_ingredient(sender, instance, **kwargs):
+    if (
+        not isinstance(instance, ArchivedIngredient)
+        and RecipeIngredient.objects.filter(ingredient=instance).exists()
+    ):
+        archived_ingredient = ArchivedIngredient.objects.create(
+            name=instance.name,
+            measurement_unit=instance.measurement_unit,
+        )
+
+        RecipeIngredient.objects.filter(
+            ingredient=instance
+            ).update(
+                ingredient=archived_ingredient
+            )
