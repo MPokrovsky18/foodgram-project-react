@@ -1,25 +1,41 @@
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
+
+MAX_CHARFIELD_LENGTH = 200
+MAX_COLOR_CHARFIELD_LENGTH = 7
+MAX_SLUGFIELD_LENGTH = 200
 
 User = settings.AUTH_USER_MODEL
 
 
 class Tag(models.Model):
-    name = models.CharField('Название', unique=True, max_length=200)
-    color = models.CharField('Цвет', unique=True, max_length=7)
-    slug = models.SlugField('Слаг', unique=True, max_length=200)
+    name = models.CharField(
+        'Название', unique=True, max_length=MAX_CHARFIELD_LENGTH
+    )
+    color = models.CharField(
+        'Цвет', unique=True, max_length=MAX_COLOR_CHARFIELD_LENGTH
+    )
+    slug = models.SlugField(
+        'Слаг', unique=True, max_length=MAX_SLUGFIELD_LENGTH
+    )
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'тег'
+        verbose_name_plural = 'Теги'
 
     def __str__(self) -> str:
         return self.name
 
 
 class Ingredient(models.Model):
-    name = models.CharField('Название', unique=True, max_length=200)
-    measurement_unit = models.CharField(
-        'Единицы измерения', unique=True, max_length=200
+    name = models.CharField(
+        'Название', unique=True, max_length=MAX_CHARFIELD_LENGTH
     )
+    measurement_unit = models.CharField(
+        'Единицы измерения', max_length=MAX_CHARFIELD_LENGTH
+    )
+    is_archived = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('name',)
@@ -27,24 +43,57 @@ class Ingredient(models.Model):
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
-        return self.name
+        return f'{self.name}/{self.measurement_unit}'
+
+    def to_archive(self):
+        self.is_archived = True
+        self.save()
+        ArchivedIngredient.objects.create(
+            ingredient=self
+        )
+
+    def hard_delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if RecipeIngredient.objects.filter(ingredient=self).exists():
+            self.to_archive()
+        else:
+            self.hard_delete(*args, **kwargs)
 
 
-class ArchivedIngredient(Ingredient):
-    archived_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Архивировано',
+class ArchivedIngredient(models.Model):
+    ingredient = models.OneToOneField(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='archive_data',
+        verbose_name='Ингредиент'
     )
+    archived_at = models.DateTimeField('Архивировано', auto_now_add=True,)
 
     class Meta:
-        ordering = ('name',)
-        verbose_name = 'архивный ингредиент'
-        verbose_name_plural = 'Архивные ингредиенты'
+        ordering = ('ingredient__name',)
+        verbose_name = 'архивированный ингредиент'
+        verbose_name_plural = 'Архивированные ингредиенты'
+
+    def __str__(self) -> str:
+        return str(self.ingredient)
+
+    def unarchive(self):
+        self.ingredient.is_archived = False
+        self.ingredient.save()
+        self.delete()
+
+    def delete(self, *args, **kwargs):
+        if self.ingredient.is_archived:
+            self.ingredient.hard_delete()
+
+        super().delete(*args, **kwargs)
 
 
 class Recipe(models.Model):
-    name = models.CharField('Название', max_length=200)
-    image = models.ImageField('Изображение')
+    name = models.CharField('Название', max_length=MAX_CHARFIELD_LENGTH)
+    image = models.ImageField('Изображение', blank=True, null=True)
     text = models.TextField('Описание')
     coocking_time = models.IntegerField('Время приготовления')
     pub_date = models.DateTimeField(
@@ -85,24 +134,7 @@ class RecipeIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
+        null=True,
         on_delete=models.CASCADE
     )
     quantity = models.FloatField('Количество')
-
-
-@receiver(pre_delete, sender=Ingredient)
-def archive_ingredient(sender, instance, **kwargs):
-    if (
-        not isinstance(instance, ArchivedIngredient)
-        and RecipeIngredient.objects.filter(ingredient=instance).exists()
-    ):
-        archived_ingredient = ArchivedIngredient.objects.create(
-            name=instance.name,
-            measurement_unit=instance.measurement_unit,
-        )
-
-        RecipeIngredient.objects.filter(
-            ingredient=instance
-            ).update(
-                ingredient=archived_ingredient
-            )
