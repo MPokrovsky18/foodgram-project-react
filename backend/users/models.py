@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -43,3 +44,52 @@ class FoodgramUser(AbstractUser):
 
     def __str__(self) -> str:
         return f'{self.first_name} {self.last_name}'
+
+    def subscribe(self, user):
+        if user == self:
+            raise ValidationError('Нельзя подписаться на самого себя!')
+
+        if self.subscriptions.filter(id=user.id).exists():
+            raise ValidationError('Вы уже подписаны на этого пользователя!')
+
+        self.subscriptions.add(user)
+
+    def unsubscribe(self, user):
+        if not self.subscriptions.filter(id=user.id).exists():
+            raise ValidationError(
+                'Вы не подписаны на этого пользователя!'
+            )
+
+        self.subscriptions.remove(user)
+
+    def add_to_favorites(self, recipe):
+        if self.favorite_recipes.filter(id=recipe.id).exists():
+            raise ValidationError(
+                'Вы уже добавили этот рецепт в Избранное!'
+            )
+
+        self.favorite_recipes.add(recipe)
+
+    def remove_from_favorites(self, recipe):
+        if not self.favorite_recipes.filter(id=recipe.id).exists():
+            raise ValidationError(
+                'Вы еще не добавили этот рецепт в Избранное!'
+            )
+
+        self.favorite_recipes.remove(recipe)
+
+    def add_to_shopping_list(self, recipe):
+        if self.shopping_list.filter(id=recipe.id).exists():
+            raise ValidationError(
+                'Вы уже добавили этот рецепт в Список покупок!'
+            )
+
+        self.shopping_list.add(recipe)
+
+    def remove_from_shopping_list(self, recipe):
+        if not self.shopping_list.filter(id=recipe.id).exists():
+            raise ValidationError(
+                'Вы еще не добавили этот рецепт в Список покупок!'
+            )
+
+        self.shopping_list.remove(recipe)
