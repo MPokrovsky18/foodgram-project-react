@@ -9,6 +9,15 @@ User = settings.AUTH_USER_MODEL
 
 
 class Tag(models.Model):
+    """
+    Model representing a tag for recipes.
+
+    Attributes:
+        - name: The name of the tag.
+        - color: The color code associated with the tag.
+        - slug: The unique slug for the tag.
+    """
+
     name = models.CharField(
         'Название', unique=True, max_length=MAX_CHARFIELD_LENGTH
     )
@@ -29,6 +38,22 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """
+    Model representing an ingredient.
+
+    Attributes:
+        - name: The name of the ingredient.
+        - measurement_unit: The measurement unit for the ingredient.
+        - is_archived: Flag indicating whether the ingredient is archived.
+
+    Methods:
+        - to_archive:
+            Archive the ingredient and creating an ArchivedIngredient.
+        - hard_delete: Perform a hard delete of the ingredient.
+        - delete: Soft delete the ingredient,
+            archiving it if associated with any Recipe instances.
+    """
+
     name = models.CharField(
         'Название', unique=True, max_length=MAX_CHARFIELD_LENGTH
     )
@@ -46,6 +71,7 @@ class Ingredient(models.Model):
         return f'{self.name}/{self.measurement_unit}'
 
     def to_archive(self):
+        """Archive the ingredient and creating an ArchivedIngredient."""
         self.is_archived = True
         self.save()
         ArchivedIngredient.objects.create(
@@ -53,9 +79,15 @@ class Ingredient(models.Model):
         )
 
     def hard_delete(self, *args, **kwargs):
+        """Perform a hard delete of the ingredient."""
         super().delete(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
+        """
+        Soft delete the ingredient.
+
+        Archiving it if associated with any Recipe instances.
+        """
         if RecipeIngredient.objects.filter(ingredient=self).exists():
             self.to_archive()
         else:
@@ -63,6 +95,19 @@ class Ingredient(models.Model):
 
 
 class ArchivedIngredient(models.Model):
+    """
+    Model representing an archived ingredient.
+
+    Attributes:
+        - ingredient: The original ingredient.
+        - archived_at: The timestamp when the ingredient was archived.
+
+    Methods:
+        - unarchive:
+            Unarchive the ingredient and deleting the ArchivedIngredient.
+        - delete: Perform a hard delete of the archived ingredient.
+    """
+
     ingredient = models.OneToOneField(
         Ingredient,
         on_delete=models.CASCADE,
@@ -80,11 +125,13 @@ class ArchivedIngredient(models.Model):
         return str(self.ingredient)
 
     def unarchive(self):
+        """Unarchive the ingredient and deleting the ArchivedIngredient."""
         self.ingredient.is_archived = False
         self.ingredient.save()
         self.delete()
 
     def delete(self, *args, **kwargs):
+        """Perform a hard delete of the archived ingredient."""
         if self.ingredient.is_archived:
             self.ingredient.hard_delete()
 
@@ -92,6 +139,20 @@ class ArchivedIngredient(models.Model):
 
 
 class Recipe(models.Model):
+    """
+    Model representing a recipe.
+
+    Attributes:
+        - name: The name of the recipe.
+        - image: The image associated with the recipe.
+        - text: The description of the recipe.
+        - coocking_time: The time required to cook the recipe.
+        - pub_date: The timestamp when the recipe was published.
+        - author: The user who authored the recipe.
+        - ingredients: Ingredients used in the recipe.
+        - tags: Tags associated with the recipe.
+    """
+
     name = models.CharField('Название', max_length=MAX_CHARFIELD_LENGTH)
     image = models.ImageField('Изображение', blank=True, null=True)
     text = models.TextField('Описание')
@@ -128,6 +189,15 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
+    """
+    Model representing the relationship between a recipe and its ingredients.
+
+    Attributes:
+        - recipe: The recipe associated with the entry.
+        - ingredient: The ingredient associated with the entry.
+        - quantity: The quantity of the ingredient used in the recipe.
+    """
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,

@@ -13,6 +13,16 @@ UserAdmin.fieldsets += (
 
 @admin.register(FoodgramUser)
 class FoodgramUserAdmin(UserAdmin):
+    """
+    Admin interface customization for FoodgramUser model.
+
+    List display includes:
+        email, username, first name, last name, is_staff, and is_active.
+
+    Fieldsets include the default UserAdmin fieldsets
+    and additional fields for favorite_recipes and shopping_list.
+    """
+
     list_display = (
         'email',
         'username',
