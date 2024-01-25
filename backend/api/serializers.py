@@ -6,7 +6,7 @@ from recipes.models import Ingredient, Recipe, Tag
 class TagSerializer(ModelSerializer):
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'color', 'slug')
 
 
 class IngredientSerializer(ModelSerializer):

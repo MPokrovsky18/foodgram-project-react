@@ -9,6 +9,7 @@ from recipes.models import Ingredient, Recipe, Tag
 class TagReadOnlyViewSet(ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class IngredientReadOnlyViewSet(ReadOnlyModelViewSet):
