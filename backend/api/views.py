@@ -6,16 +6,16 @@ from api.serializers import (
 from recipes.models import Ingredient, Recipe, Tag
 
 
+class TagReadOnlyViewSet(ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
 class IngredientReadOnlyViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
 
     def get_queryset(self):
         return Ingredient.objects.filter(is_archived=False)
-
-
-class TagReadOnlyViewSet(ReadOnlyModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
 
 
 class RecipeViewSet(ModelViewSet):
