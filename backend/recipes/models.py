@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
+
 
 MAX_CHARFIELD_LENGTH = 200
 MAX_COLOR_CHARFIELD_LENGTH = 7
@@ -22,7 +24,13 @@ class Tag(models.Model):
         'Название', unique=True, max_length=MAX_CHARFIELD_LENGTH
     )
     color = models.CharField(
-        'Цвет', unique=True, max_length=MAX_COLOR_CHARFIELD_LENGTH
+        'Цвет', unique=True,
+        max_length=MAX_COLOR_CHARFIELD_LENGTH,
+        validators=(
+            RegexValidator(
+                regex='^#[0-9a-fA-F]{6}$', message='Неправильный формат HEX.'
+            ),
+        )
     )
     slug = models.SlugField(
         'Слаг', unique=True, max_length=MAX_SLUGFIELD_LENGTH
