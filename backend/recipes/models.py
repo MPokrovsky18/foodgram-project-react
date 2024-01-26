@@ -164,7 +164,7 @@ class Recipe(models.Model):
     name = models.CharField('Название', max_length=MAX_CHARFIELD_LENGTH)
     image = models.ImageField('Изображение', blank=True, null=True)
     text = models.TextField('Описание')
-    coocking_time = models.IntegerField('Время приготовления')
+    cooking_time = models.IntegerField('Время приготовления')
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Опубликовано',

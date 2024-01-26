@@ -96,7 +96,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
-        'coocking_time',
+        'cooking_time',
         'pub_date'
     )
     inlines = (RecipeIngredientInline, RecipeTagInline)

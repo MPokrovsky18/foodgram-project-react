@@ -66,9 +66,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id',
             'tags',
             'author',
+            'ingredients',
             'name',
             'image',
             'text',
-            'coocking_time',
-            'ingredients',
+            'cooking_time',
         )
