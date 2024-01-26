@@ -1,11 +1,11 @@
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
-
 
 MAX_CHARFIELD_LENGTH = 200
 MAX_COLOR_CHARFIELD_LENGTH = 7
 MAX_SLUGFIELD_LENGTH = 200
+MIN_VALUE = 1
 
 User = settings.AUTH_USER_MODEL
 
@@ -183,6 +183,7 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
+        through='RecipeTag',
         related_name='recipes',
         verbose_name='Теги'
     )
@@ -212,7 +213,55 @@ class RecipeIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        null=True,
         on_delete=models.CASCADE
     )
-    quantity = models.FloatField('Количество')
+    amount = models.IntegerField(
+        'Количество',
+        default=MIN_VALUE,
+        validators=(
+            MinValueValidator(
+                MIN_VALUE,
+                message=('Количество ингредиента '
+                         'не может быть меньше {MIN_VALUE}.')
+            ),
+        )
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=('recipe', 'ingredient'),
+                name='unique_recipe_ingredient'
+            )
+        ]
+        verbose_name = 'ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
+
+
+class RecipeTag(models.Model):
+    """
+    Model representing the relationship between a recipe and its tegs.
+
+    Attributes:
+        - recipe: The recipe associated with the entry.
+        - tag: The tag associated with the entry.
+    """
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=('recipe', 'tag'),
+                name='unique_recipe_tag'
+            )
+        ]
+        verbose_name = 'тег рецепта'
+        verbose_name_plural = 'Теги рецепта'
