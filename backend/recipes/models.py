@@ -96,7 +96,7 @@ class Ingredient(models.Model):
 
         Archiving it if associated with any Recipe instances.
         """
-        if RecipeIngredient.objects.filter(ingredient=self).exists():
+        if IngredientInRecipe.objects.filter(ingredient=self).exists():
             self.to_archive()
         else:
             self.hard_delete(*args, **kwargs)
@@ -177,13 +177,13 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='RecipeIngredient',
+        through='IngredientInRecipe',
         related_name='recipes',
         verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
         Tag,
-        through='RecipeTag',
+        through='TagInRecipe',
         related_name='recipes',
         verbose_name='Теги'
     )
@@ -197,7 +197,7 @@ class Recipe(models.Model):
         return self.name
 
 
-class RecipeIngredient(models.Model):
+class IngredientInRecipe(models.Model):
     """
     Model representing the relationship between a recipe and its ingredients.
 
@@ -238,7 +238,7 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = 'Ингредиенты в рецепте'
 
 
-class RecipeTag(models.Model):
+class TagInRecipe(models.Model):
     """
     Model representing the relationship between a recipe and its tegs.
 

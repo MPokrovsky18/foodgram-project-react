@@ -1,17 +1,18 @@
 from django.contrib import admin
 
 from recipes.models import (
-    ArchivedIngredient, Ingredient, Recipe, RecipeIngredient, RecipeTag, Tag
+    ArchivedIngredient, Ingredient, Recipe,
+    IngredientInRecipe, TagInRecipe, Tag,
 )
 
 
 class RecipeIngredientInline(admin.TabularInline):
-    model = RecipeIngredient
+    model = IngredientInRecipe
     extra = 0
 
 
 class RecipeTagInline(admin.TabularInline):
-    model = RecipeTag
+    model = TagInRecipe
     extra = 0
 
 
