@@ -159,6 +159,13 @@ class Recipe(models.Model):
         - author: The user who authored the recipe.
         - ingredients: Ingredients used in the recipe.
         - tags: Tags associated with the recipe.
+
+    Methods:
+        - is_favorited_by_user(user):
+            Check if the given recipe is a favorited of the current user.
+        - is_added_to_shopping_list_by_user(user):
+            Check if the given recipe has been added
+            to the shopping list of the current user.
     """
 
     name = models.CharField('Название', max_length=MAX_CHARFIELD_LENGTH)
@@ -195,6 +202,17 @@ class Recipe(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def is_favorited_by_user(self, user):
+        """Check if the given recipe is a favorited of the current user."""
+        return self.favorited_by.filter(id=user.id).exists()
+
+    def is_added_to_shopping_list_by_user(self, user):
+        """
+        Check if the given recipe has been added
+        to the shopping list of the current user.
+        """
+        return self.added_to_shopping_list_by.filter(id=user.id).exists()
 
 
 class IngredientInRecipe(models.Model):
