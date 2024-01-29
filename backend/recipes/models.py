@@ -63,7 +63,7 @@ class Ingredient(models.Model):
     """
 
     name = models.CharField(
-        'Название', unique=True, max_length=MAX_CHARFIELD_LENGTH
+        'Название', max_length=MAX_CHARFIELD_LENGTH
     )
     measurement_unit = models.CharField(
         'Единицы измерения', max_length=MAX_CHARFIELD_LENGTH
@@ -74,6 +74,12 @@ class Ingredient(models.Model):
         ordering = ('name',)
         verbose_name = 'ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('name', 'measurement_unit'),
+                name='unique_name_measurement_unit'
+            )
+        ]
 
     def __str__(self):
         return f'{self.name}/{self.measurement_unit}'
