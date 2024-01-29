@@ -1,13 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from rest_framework.response import Response
-from rest_framework import status
 
+from api.decorators import recipe_action
 from api.filters import IngredientFilter, RecipeFilter
 from api.serializers import (
-    IngredientSerializer, RecipeSerializer,
-    RecipeActionSerializer, TagSerializer,
+    IngredientSerializer, RecipeSerializer, TagSerializer,
 )
 from recipes.models import Ingredient, Recipe, Tag
 
@@ -38,39 +36,17 @@ class RecipeViewSet(ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(detail=True, methods=['post', 'delete'])
-    def favorite(self, request, pk=None):
-        if request.method == 'POST':
-            recipe = self.get_object()
-            request.user.add_to_favorites(recipe)
-            serializer = RecipeActionSerializer(recipe)
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
-        if request.method == 'DELETE':
-            request.user.remove_from_favorites(self.get_object())
-            return Response(
-                status=status.HTTP_204_NO_CONTENT
-            )
-
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    @recipe_action
+    def favorite(self, user, recipe, remove=False):
+        if remove:
+            user.remove_from_favorites(recipe)
+        else:
+            user.add_to_favorites(recipe)
 
     @action(detail=True, methods=['post', 'delete'])
-    def shopping_cart(self, request, pk=None):
-        if request.method == 'POST':
-            recipe = self.get_object()
-            request.user.add_to_shopping_list(recipe)
-            serializer = RecipeActionSerializer(recipe)
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
-        if request.method == 'DELETE':
-            request.user.remove_from_shopping_list(self.get_object())
-            return Response(
-                status=status.HTTP_204_NO_CONTENT
-            )
-
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    @recipe_action
+    def shopping_cart(self, user, recipe, remove=False):
+        if remove:
+            user.remove_from_shopping_list(recipe)
+        else:
+            user.add_to_shopping_list(recipe)
