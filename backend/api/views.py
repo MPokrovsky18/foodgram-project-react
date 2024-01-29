@@ -1,7 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
-from api.filters import IngredientFilter
+from api.filters import IngredientFilter, RecipeFilter
 from api.serializers import (
     IngredientSerializer, RecipeSerializer, TagSerializer
 )
@@ -27,6 +27,8 @@ class IngredientReadOnlyViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
