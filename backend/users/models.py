@@ -22,6 +22,8 @@ class FoodgramUser(AbstractUser):
         - shopping_list: Recipes in the user's shopping list.
 
     Methods:
+        - is_subscriber(user):
+            Check if the given user is a subscriber of the current user.
         - subscribe(user): Subscribe the user to another user.
         - unsubscribe(user): Unsubscribe the user from another user.
         - add_to_favorites(recipe): Add a recipe to the user's favorites.
@@ -42,16 +44,19 @@ class FoodgramUser(AbstractUser):
     subscriptions = models.ManyToManyField(
         'self',
         symmetrical=False,
+        blank=True,
         related_name='subscribers',
         verbose_name='Подписки'
     )
     favorite_recipes = models.ManyToManyField(
         Recipe,
+        blank=True,
         related_name='favorited_by',
         verbose_name='Избранные рецепты'
     )
     shopping_list = models.ManyToManyField(
         Recipe,
+        blank=True,
         related_name='added_to_shopping_list_by',
         verbose_name='Список покупок'
     )
@@ -66,6 +71,18 @@ class FoodgramUser(AbstractUser):
 
     def __str__(self) -> str:
         return f'{self.first_name} {self.last_name}'
+
+    def is_subscriber(self, user):
+        """
+        Check if the given user is a subscriber of the current user.
+
+        Args:
+            user (FoodgramUser): User to check for subscription.
+
+        Returns:
+            bool: True if the given user is a subscriber, False otherwise.
+        """
+        return self.subscribers.filter(id=user.id).exists()
 
     def subscribe(self, user):
         """

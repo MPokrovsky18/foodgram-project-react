@@ -8,6 +8,7 @@ admin.site.unregister(Group)
 
 UserAdmin.fieldsets += (
     ('Списки рецептов', {'fields': ('favorite_recipes', 'shopping_list')}),
+    ('Подписки', {'fields': ('subscriptions',)}),
 )
 
 
