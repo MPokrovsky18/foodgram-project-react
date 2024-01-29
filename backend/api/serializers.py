@@ -1,7 +1,6 @@
 import base64
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
@@ -74,16 +73,14 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
     def to_internal_value(self, data):
-        print(data)
         if (
             not isinstance(data, dict)
             or 'id' not in data
             or 'amount' not in data
             or not isinstance(data['id'], int)
+            or not isinstance(data['amount'], (int, str))
             or (isinstance(data['amount'], str)
                 and not data['amount'].isdigit())
-            or (not isinstance(data['amount'], str)
-                and not isinstance(data['amount'], int))
         ):
             raise serializers.ValidationError(
                 "Некорректные данные для ингредиента."
@@ -136,29 +133,36 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return False
 
-    def create(self, validated_data):
-        if (
-            'ingredients' not in self.initial_data
-            or 'tags' not in self.initial_data
-        ):
-            raise ValidationError(
-                'Поля "ingredients" и "tags" являются обязательными.'
-            )
+    def add_tags_and_ingredients(
+            self, instance, tags=None, ingredients=None, update=False
+    ):
+        if ingredients:
+            if update:
+                instance.ingredientinrecipe_set.all().delete()
 
+            IngredientInRecipe.objects.bulk_create([
+                IngredientInRecipe(
+                    recipe=instance,
+                    ingredient=Ingredient.objects.get(
+                        id=data_ingredient['id']
+                    ),
+                    amount=data_ingredient['amount']
+                ) for data_ingredient in ingredients
+            ])
+
+        if tags:
+            if update:
+                instance.tags.clear()
+
+            instance.tags.add(*tags)
+
+        instance.save()
+
+    def create(self, validated_data):
         ingredients = validated_data.pop('ingredientinrecipe_set')
         tags = validated_data.pop('tags')
-
         recipe = Recipe.objects.create(**validated_data)
-
-        for data_ingredient in ingredients:
-            IngredientInRecipe.objects.create(
-                recipe=recipe,
-                ingredient=Ingredient.objects.get(id=data_ingredient['id']),
-                amount=data_ingredient['amount']
-            )
-
-        for tag_id in tags:
-            recipe.tags.add(Tag.objects.get(id=tag_id))
+        self.add_tags_and_ingredients(recipe, tags, ingredients)
 
         return recipe
 
@@ -169,29 +173,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time', instance.cooking_time
         )
         instance.image = validated_data.get('image', instance.image)
-
         ingredients = validated_data.get('ingredientinrecipe_set')
         tags = validated_data.get('tags')
-
-        if ingredients:
-            instance.ingredientinrecipe_set.all().delete()
-
-            for data_ingredient in ingredients:
-                IngredientInRecipe.objects.create(
-                    recipe=instance,
-                    ingredient=Ingredient.objects.get(
-                        id=data_ingredient['id']
-                    ),
-                    amount=data_ingredient['amount']
-                )
-
-        if tags:
-            instance.tags.clear()
-
-            for tag_id in tags:
-                instance.tags.add(Tag.objects.get(id=tag_id))
-
-        instance.save()
+        self.add_tags_and_ingredients(instance, tags, ingredients, update=True)
 
         return instance
 
