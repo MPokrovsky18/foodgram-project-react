@@ -1,7 +1,7 @@
 import base64
 
-from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
 from recipes.models import Ingredient, Recipe, IngredientInRecipe, Tag
@@ -18,11 +18,10 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class UserSerializer(serializers.ModelSerializer):
+class FoodgramUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
-    class Meta:
-        model = get_user_model()
+    class Meta(UserSerializer.Meta):
         fields = (
             'email',
             'id',
@@ -94,7 +93,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
-    author = UserSerializer(read_only=True)
+    author = FoodgramUserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(
         source='ingredientinrecipe_set', many=True
     )

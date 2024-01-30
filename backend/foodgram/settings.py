@@ -132,4 +132,7 @@ DJOSER = {
         'user_list': ['rest_framework.permissions.AllowAny'],
         'user': ['rest_framework.permissions.AllowAny'],
     },
+    'SERIALIZERS': {
+        'user': 'api.serializers.FoodgramUserSerializer',
+    }
 }
