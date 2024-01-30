@@ -179,8 +179,28 @@ class RecipeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class RecipeActionSerializer(serializers.ModelSerializer):
+class RecipeMinifiedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time',)
         read_only_fields = ('id', 'name', 'image', 'cooking_time',)
+
+
+class UserWithRecipesSerializer(FoodgramUserSerializer):
+    recipes = RecipeMinifiedSerializer(read_only=True, many=True)
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta(FoodgramUserSerializer.Meta):
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+
+    def get_recipes_count(self, user):
+        return user.recipes.count()
