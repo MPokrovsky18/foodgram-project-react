@@ -2,7 +2,8 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views import (
-    IngredientReadOnlyViewSet, TagReadOnlyViewSet, RecipeViewSet
+    IngredientReadOnlyViewSet, TagReadOnlyViewSet,
+    RecipeViewSet, FoodgramUserViewSet
 )
 
 
@@ -24,10 +25,14 @@ router_v1.register(
     RecipeViewSet,
     basename='recipes'
 )
+router_v1.register(
+    r'users',
+    FoodgramUserViewSet,
+    basename='users'
+)
 
 urlpatterns_v1 = [
     path('', include(router_v1.urls)),
-    path('', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
 ]
 
