@@ -2,6 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 
 from api.decorators import add_remove_action
 from api.filters import IngredientFilter, RecipeFilter
@@ -59,6 +60,12 @@ class RecipeViewSet(ModelViewSet):
 
 
 class FoodgramUserViewSet(UserViewSet):
+    def get_permissions(self):
+        if self.action in ('me', 'subscriptions', 'subscribe'):
+            return (IsAuthenticated(),)
+
+        return super().get_permissions()
+
     def get_serializer_class(self):
         if self.action in ('subscriptions', 'subscribe'):
             return UserWithRecipesSerializer

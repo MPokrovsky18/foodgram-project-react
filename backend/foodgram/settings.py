@@ -111,7 +111,7 @@ AUTH_USER_MODEL = 'users.FoodgramUser'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -130,9 +130,10 @@ DJOSER = {
     'HIDE_USERS': False,
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
-        'user': ['rest_framework.permissions.AllowAny'],
+        'user': ['api.permissions.CurrentUserOrAdminOrReadOnly'],
     },
     'SERIALIZERS': {
         'user': 'api.serializers.FoodgramUserSerializer',
-    }
+    },
+    'LOGOUT_ON_PASSWORD_CHANGE': True,
 }
