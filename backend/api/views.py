@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from api.decorators import add_remove_action
 from api.filters import IngredientFilter, RecipeFilter
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
     IngredientSerializer, RecipeSerializer, RecipeMinifiedSerializer,
     TagSerializer, UserWithRecipesSerializer
@@ -32,6 +33,7 @@ class IngredientReadOnlyViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
