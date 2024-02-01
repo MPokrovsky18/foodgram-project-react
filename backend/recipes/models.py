@@ -185,9 +185,19 @@ class Recipe(models.Model):
     """
 
     name = models.CharField('Название', max_length=MAX_CHARFIELD_LENGTH)
-    image = models.ImageField('Изображение', blank=True, null=True)
+    image = models.ImageField('Изображение', upload_to='recipes/images/')
     text = models.TextField('Описание')
-    cooking_time = models.IntegerField('Время приготовления')
+    cooking_time = models.IntegerField(
+        'Время приготовления',
+        default=MIN_VALUE,
+        validators=(
+            MinValueValidator(
+                MIN_VALUE,
+                message=('Время приготовления '
+                         'не может быть меньше {MIN_VALUE}.')
+            ),
+        )
+    )
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Опубликовано',
