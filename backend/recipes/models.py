@@ -24,16 +24,26 @@ class Tag(models.Model):
         'Название', unique=True, max_length=MAX_CHARFIELD_LENGTH
     )
     color = models.CharField(
-        'Цвет', unique=True,
+        'Цвет',
+        unique=True,
         max_length=MAX_COLOR_CHARFIELD_LENGTH,
         validators=(
             RegexValidator(
-                regex='^#[0-9a-fA-F]{6}$', message='Неправильный формат HEX.'
+                regex=r'^#[0-9a-fA-F]{6}$',
+                message='Неправильный формат HEX.'
             ),
         )
     )
     slug = models.SlugField(
-        'Слаг', unique=True, max_length=MAX_SLUGFIELD_LENGTH
+        'Слаг',
+        unique=True,
+        max_length=MAX_SLUGFIELD_LENGTH,
+        validators=(
+            RegexValidator(
+                regex=r'^[-a-zA-Z0-9_]+$',
+                message='Неправильный формат поля slug. ^[-a-zA-Z0-9_]+$'
+            ),
+        )
     )
 
     class Meta:
