@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -37,8 +38,12 @@ class FoodgramUser(AbstractUser):
         'Почта', max_length=MAX_EMAIL_LENGTH, unique=True
     )
     username = models.CharField(
-        'Имя пользователя', max_length=MAX_CHARFIELD_LENGTH, unique=True
+        'Юзернейм',
+        max_length=MAX_CHARFIELD_LENGTH,
+        validators=(UnicodeUsernameValidator(),),
+        unique=True
     )
+    password = models.CharField('Пароль', max_length=MAX_CHARFIELD_LENGTH)
     first_name = models.CharField('Имя', max_length=MAX_CHARFIELD_LENGTH)
     last_name = models.CharField('Фамилия', max_length=MAX_CHARFIELD_LENGTH)
     subscriptions = models.ManyToManyField(
@@ -62,7 +67,7 @@ class FoodgramUser(AbstractUser):
     )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
 
     class Meta:
         ordering = ('email',)
