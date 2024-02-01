@@ -8,6 +8,8 @@ from recipes.models import Ingredient, Recipe, IngredientInRecipe, Tag
 
 
 class Base64ImageField(serializers.ImageField):
+    """Custom ImageField for handling base64-encoded images."""
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -19,6 +21,8 @@ class Base64ImageField(serializers.ImageField):
 
 
 class FoodgramUserSerializer(UserSerializer):
+    """Custom user serializer."""
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
@@ -41,6 +45,8 @@ class FoodgramUserSerializer(UserSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Serializer for Tag model."""
+
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
@@ -53,12 +59,22 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Serializer for Ingredient."""
+
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for IngredientInRecipe model.
+
+    Fields: 'id', 'name', 'measurement_unit', and 'amount'.
+
+    Custom internal value handling for ingredient data.
+    """
+
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient', read_only=True
     )
@@ -92,6 +108,16 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Recipe model with detailed fields.
+
+    Including tags, author, ingredients, favorited status,
+    and shopping cart status.
+
+    Supports creation and update with associated tags
+    and ingredients.
+    """
+
     tags = TagSerializer(many=True)
     author = FoodgramUserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(
@@ -180,6 +206,12 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeMinifiedSerializer(serializers.ModelSerializer):
+    """
+    Minified version of RecipeSerializer.
+
+    Fields: 'id', 'name', 'image', and 'cooking_time'.
+    """
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time',)
@@ -187,6 +219,13 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
 
 
 class UserWithRecipesSerializer(FoodgramUserSerializer):
+    """
+    Serializer for FoodgramUser model.
+
+    Returns with additional fields for custom recipes
+    and the number of recipes.
+    """
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -203,6 +242,7 @@ class UserWithRecipesSerializer(FoodgramUserSerializer):
         )
 
     def get_recipes(self, user):
+        """Retrieve user's recipes with an optional limit."""
         recipes = user.recipes.all()
         recipes_limit = self.context[
             'request'
@@ -214,4 +254,5 @@ class UserWithRecipesSerializer(FoodgramUserSerializer):
         return RecipeMinifiedSerializer(recipes, many=True).data
 
     def get_recipes_count(self, user):
+        """Retrieve the count of user's recipes."""
         return user.recipes.count()
