@@ -187,7 +187,7 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
 
 
 class UserWithRecipesSerializer(FoodgramUserSerializer):
-    recipes = RecipeMinifiedSerializer(read_only=True, many=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta(FoodgramUserSerializer.Meta):
@@ -201,6 +201,17 @@ class UserWithRecipesSerializer(FoodgramUserSerializer):
             'recipes',
             'recipes_count'
         )
+
+    def get_recipes(self, user):
+        recipes = user.recipes.all()
+        recipes_limit = self.context[
+            'request'
+        ].query_params.get('recipes_limit')
+
+        if recipes_limit and recipes_limit.isdigit():
+            recipes = recipes[:int(recipes_limit)]
+
+        return RecipeMinifiedSerializer(recipes, many=True).data
 
     def get_recipes_count(self, user):
         return user.recipes.count()
