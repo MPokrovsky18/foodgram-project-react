@@ -1,5 +1,7 @@
 Django==3.2.3
+django-filter==23.5
 djangorestframework==3.12.4
+djoser==2.2.2
 psycopg2-binary==2.9.3
 python-dotenv==1.0.0
 Pillow==9.0.0

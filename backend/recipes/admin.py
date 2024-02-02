@@ -1,12 +1,18 @@
 from django.contrib import admin
 
 from recipes.models import (
-    ArchivedIngredient, Ingredient, Recipe, RecipeIngredient, Tag
+    ArchivedIngredient, Ingredient, Recipe,
+    IngredientInRecipe, TagInRecipe, Tag,
 )
 
 
 class RecipeIngredientInline(admin.TabularInline):
-    model = RecipeIngredient
+    model = IngredientInRecipe
+    extra = 0
+
+
+class RecipeTagInline(admin.TabularInline):
+    model = TagInRecipe
     extra = 0
 
 
@@ -90,7 +96,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
-        'coocking_time',
+        'cooking_time',
         'pub_date'
     )
-    inlines = (RecipeIngredientInline,)
+    inlines = (RecipeIngredientInline, RecipeTagInline)

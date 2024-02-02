@@ -22,6 +22,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
+    'django_filters',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
@@ -39,10 +43,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'foodgram.urls'
 
+TEMOLATES_DIR = BASE_DIR / 'templates'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [TEMOLATES_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -104,3 +110,33 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.FoodgramUser'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
+
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.PageLimitPagination',
+    'PAGE_SIZE': 6,
+}
+
+DJOSER = {
+    'HIDE_USERS': False,
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['api.permissions.CurrentUserOrAdminOrReadOnly'],
+    },
+    'SERIALIZERS': {
+        'user': 'api.serializers.FoodgramUserSerializer',
+        'current_user': 'api.serializers.FoodgramUserSerializer',
+    },
+    'LOGOUT_ON_PASSWORD_CHANGE': True,
+}

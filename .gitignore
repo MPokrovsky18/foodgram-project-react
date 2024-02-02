@@ -133,3 +133,6 @@ dmypy.json
 
 # infra
 infra-dev/
+
+# static, media
+media/

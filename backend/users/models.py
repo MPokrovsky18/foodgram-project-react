@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -22,6 +23,8 @@ class FoodgramUser(AbstractUser):
         - shopping_list: Recipes in the user's shopping list.
 
     Methods:
+        - is_subscriber(user):
+            Check if the given user is a subscriber of the current user.
         - subscribe(user): Subscribe the user to another user.
         - unsubscribe(user): Unsubscribe the user from another user.
         - add_to_favorites(recipe): Add a recipe to the user's favorites.
@@ -35,29 +38,36 @@ class FoodgramUser(AbstractUser):
         'Почта', max_length=MAX_EMAIL_LENGTH, unique=True
     )
     username = models.CharField(
-        'Имя пользователя', max_length=MAX_CHARFIELD_LENGTH, unique=True
+        'Юзернейм',
+        max_length=MAX_CHARFIELD_LENGTH,
+        validators=(UnicodeUsernameValidator(),),
+        unique=True
     )
+    password = models.CharField('Пароль', max_length=MAX_CHARFIELD_LENGTH)
     first_name = models.CharField('Имя', max_length=MAX_CHARFIELD_LENGTH)
     last_name = models.CharField('Фамилия', max_length=MAX_CHARFIELD_LENGTH)
     subscriptions = models.ManyToManyField(
         'self',
         symmetrical=False,
+        blank=True,
         related_name='subscribers',
         verbose_name='Подписки'
     )
     favorite_recipes = models.ManyToManyField(
         Recipe,
+        blank=True,
         related_name='favorited_by',
         verbose_name='Избранные рецепты'
     )
     shopping_list = models.ManyToManyField(
         Recipe,
+        blank=True,
         related_name='added_to_shopping_list_by',
         verbose_name='Список покупок'
     )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
 
     class Meta:
         ordering = ('email',)
@@ -66,6 +76,18 @@ class FoodgramUser(AbstractUser):
 
     def __str__(self) -> str:
         return f'{self.first_name} {self.last_name}'
+
+    def is_subscriber(self, user):
+        """
+        Check if the given user is a subscriber of the current user.
+
+        Args:
+            user (FoodgramUser): User to check for subscription.
+
+        Returns:
+            bool: True if the given user is a subscriber, False otherwise.
+        """
+        return self.subscribers.filter(id=user.id).exists()
 
     def subscribe(self, user):
         """
@@ -114,6 +136,11 @@ class FoodgramUser(AbstractUser):
         Raises:
             ValidationError: If the recipe is already in the user's favorites.
         """
+        if not recipe:
+            raise ValidationError(
+                'Добавляемый рецепт не существует!'
+            )
+
         if self.favorite_recipes.filter(id=recipe.id).exists():
             raise ValidationError(
                 'Вы уже добавили этот рецепт в Избранное!'
@@ -148,6 +175,11 @@ class FoodgramUser(AbstractUser):
         Raises:
             ValidationError: If the recipe is already in the shopping list.
         """
+        if not recipe:
+            raise ValidationError(
+                'Добавляемый рецепт не существует!'
+            )
+
         if self.shopping_list.filter(id=recipe.id).exists():
             raise ValidationError(
                 'Вы уже добавили этот рецепт в Список покупок!'
