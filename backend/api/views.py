@@ -48,11 +48,28 @@ class RecipeViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
+    def get_object(self):
+        if (
+            self.action in ('favorite', 'shopping_cart')
+            and self.request.method == 'POST'
+        ):
+            return Recipe.objects.filter(
+                id=self.kwargs[self.lookup_field]
+            ).first()
+
+        return super().get_object()
+
     def get_serializer_class(self):
         if self.action in ('favorite', 'shopping_cart'):
             return RecipeMinifiedSerializer
 
         return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action in ('favorite', 'shopping_cart'):
+            return (IsAuthenticated(),)
+
+        return super().get_permissions()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

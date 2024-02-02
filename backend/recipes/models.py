@@ -189,7 +189,6 @@ class Recipe(models.Model):
     text = models.TextField('Описание')
     cooking_time = models.IntegerField(
         'Время приготовления',
-        default=MIN_VALUE,
         validators=(
             MinValueValidator(
                 MIN_VALUE,

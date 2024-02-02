@@ -136,6 +136,11 @@ class FoodgramUser(AbstractUser):
         Raises:
             ValidationError: If the recipe is already in the user's favorites.
         """
+        if not recipe:
+            raise ValidationError(
+                'Добавляемый рецепт не существует!'
+            )
+
         if self.favorite_recipes.filter(id=recipe.id).exists():
             raise ValidationError(
                 'Вы уже добавили этот рецепт в Избранное!'
@@ -170,6 +175,11 @@ class FoodgramUser(AbstractUser):
         Raises:
             ValidationError: If the recipe is already in the shopping list.
         """
+        if not recipe:
+            raise ValidationError(
+                'Добавляемый рецепт не существует!'
+            )
+
         if self.shopping_list.filter(id=recipe.id).exists():
             raise ValidationError(
                 'Вы уже добавили этот рецепт в Список покупок!'
