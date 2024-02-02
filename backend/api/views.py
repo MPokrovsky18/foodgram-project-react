@@ -1,34 +1,30 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from django.http import HttpResponse
-from djoser.views import UserViewSet
-from django.template.loader import render_to_string
-from rest_framework.decorators import action
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from rest_framework.permissions import IsAuthenticated
-
+from api import serializers
 from api.decorators import add_remove_action
 from api.filters import IngredientFilter, RecipeFilter
 from api.ingredient_utls import get_ingredients_amount
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import (
-    IngredientSerializer, RecipeSerializer, RecipeMinifiedSerializer,
-    TagSerializer, UserWithRecipesSerializer
-)
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
 from recipes.models import Ingredient, Recipe, Tag
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 
 class TagReadOnlyViewSet(ReadOnlyModelViewSet):
     """ViewSet providing read-only access to Tag objects."""
 
     queryset = Tag.objects.all()
-    serializer_class = TagSerializer
+    serializer_class = serializers.TagSerializer
     pagination_class = None
 
 
 class IngredientReadOnlyViewSet(ReadOnlyModelViewSet):
     """ViewSet providing read-only access to Ingredient objects."""
 
-    serializer_class = IngredientSerializer
+    serializer_class = serializers.IngredientSerializer
     pagination_class = None
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
@@ -46,7 +42,7 @@ class RecipeViewSet(ModelViewSet):
     """
 
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = serializers.RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
@@ -64,7 +60,7 @@ class RecipeViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ('favorite', 'shopping_cart'):
-            return RecipeMinifiedSerializer
+            return serializers.RecipeMinifiedSerializer
 
         return super().get_serializer_class()
 
@@ -125,7 +121,7 @@ class FoodgramUserViewSet(UserViewSet):
 
     def get_serializer_class(self):
         if self.action in ('subscriptions', 'subscribe'):
-            return UserWithRecipesSerializer
+            return serializers.UserWithRecipesSerializer
 
         return super().get_serializer_class()
 

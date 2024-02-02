@@ -1,22 +1,18 @@
 from django.contrib import admin
-
-from recipes.models import (
-    ArchivedIngredient, Ingredient, Recipe,
-    IngredientInRecipe, TagInRecipe, Tag,
-)
+from recipes import models
 
 
 class RecipeIngredientInline(admin.TabularInline):
-    model = IngredientInRecipe
+    model = models.IngredientInRecipe
     extra = 0
 
 
 class RecipeTagInline(admin.TabularInline):
-    model = TagInRecipe
+    model = models.TagInRecipe
     extra = 0
 
 
-@admin.register(Tag)
+@admin.register(models.Tag)
 class TagAdmin(admin.ModelAdmin):
     """
     Admin interface customization for Tag model.
@@ -33,7 +29,7 @@ class TagAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Ingredient)
+@admin.register(models.Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     """
     Admin interface customization for Ingredient model.
@@ -55,7 +51,7 @@ class IngredientAdmin(admin.ModelAdmin):
         return super().get_queryset(request).filter(is_archived=False)
 
 
-@admin.register(ArchivedIngredient)
+@admin.register(models.ArchivedIngredient)
 class ArchivedIngredientAdmin(admin.ModelAdmin):
     """
     Admin interface customization for ArchivedIngredient model.
@@ -83,7 +79,7 @@ class ArchivedIngredientAdmin(admin.ModelAdmin):
     unarchive.short_description = 'Разархивировать'
 
 
-@admin.register(Recipe)
+@admin.register(models.Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """
     Admin interface customization for Recipe model.

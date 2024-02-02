@@ -1,33 +1,28 @@
+from api import views
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-
-from api.views import (
-    IngredientReadOnlyViewSet, TagReadOnlyViewSet,
-    RecipeViewSet, FoodgramUserViewSet
-)
-
 
 namespace = 'api'
 
 router_v1 = DefaultRouter()
 router_v1.register(
     r'tags',
-    TagReadOnlyViewSet,
+    views.TagReadOnlyViewSet,
     basename='tags'
 )
 router_v1.register(
     r'ingredients',
-    IngredientReadOnlyViewSet,
+    views.IngredientReadOnlyViewSet,
     basename='ingredients'
 )
 router_v1.register(
     r'recipes',
-    RecipeViewSet,
+    views.RecipeViewSet,
     basename='recipes'
 )
 router_v1.register(
     r'users',
-    FoodgramUserViewSet,
+    views.FoodgramUserViewSet,
     basename='users'
 )
 

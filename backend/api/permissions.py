@@ -1,5 +1,5 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, SAFE_METHODS
 from djoser.permissions import CurrentUserOrAdminOrReadOnly
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 
 
 class CurrentUserOrAdminOrReadOnly(
