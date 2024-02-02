@@ -49,6 +49,7 @@ class IngredientAdmin(admin.ModelAdmin):
         'measurement_unit',
     )
     exclude = ('is_archived',)
+    search_fields = ('name',)
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_archived=False)
@@ -92,11 +93,16 @@ class RecipeAdmin(admin.ModelAdmin):
 
     Model: Recipe
     """
-
     list_display = (
         'name',
         'author',
-        'cooking_time',
-        'pub_date'
     )
+    search_fields = ('name', 'author__first_name', 'author__last_name')
+    list_filter = ('tags',)
     inlines = (RecipeIngredientInline, RecipeTagInline)
+    readonly_fields = ('total_favorites',)
+
+    def total_favorites(self, obj):
+        return obj.favorited_by.count()
+
+    total_favorites.short_description = 'Добавлено в избранное'
