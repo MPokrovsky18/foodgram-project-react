@@ -1,11 +1,14 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
 from djoser.views import UserViewSet
+from django.template.loader import render_to_string
 from rest_framework.decorators import action
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
 from api.decorators import add_remove_action
 from api.filters import IngredientFilter, RecipeFilter
+from api.ingredient_utls import get_ingredients_amount
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
     IngredientSerializer, RecipeSerializer, RecipeMinifiedSerializer,
@@ -66,7 +69,9 @@ class RecipeViewSet(ModelViewSet):
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ('favorite', 'shopping_cart'):
+        if self.action in (
+            'favorite', 'shopping_cart', 'download_shopping_cart'
+        ):
             return (IsAuthenticated(),)
 
         return super().get_permissions()
@@ -89,6 +94,19 @@ class RecipeViewSet(ModelViewSet):
             user.remove_from_shopping_list(recipe)
         else:
             user.add_to_shopping_list(recipe)
+
+    @action(detail=False)
+    def download_shopping_cart(self, request):
+        return HttpResponse(
+            render_to_string(
+                'api/shopping_cart.txt',
+                {
+                    'ingredients_amount': get_ingredients_amount(request.user),
+                    'username': request.user.username
+                }
+            ),
+            content_type='text/plain'
+        )
 
 
 class FoodgramUserViewSet(UserViewSet):
