@@ -1,5 +1,3 @@
-#  Как работать с репозиторием финального задания
-
 [![Build Status](https://github.com/MPokrovsky18/foodgram-project-react/actions/workflows/main.yml/badge.svg)](https://github.com/{YOUR_USERNAME}/{YOUR_REPOSITORY}/actions/workflows/main.yml)
 
 ## Автор
