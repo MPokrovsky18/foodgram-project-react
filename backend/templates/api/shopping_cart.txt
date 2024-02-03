@@ -1,0 +1,7 @@
+Список покупок пользователя: {{ username }}
+
+{% for ingredient, amount in ingredients_amount.items %}
+{{ ingredient }} - {{ amount }}{% endfor %}
+
+---
+Foodgram
