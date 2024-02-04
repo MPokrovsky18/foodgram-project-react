@@ -22,3 +22,12 @@ class FoodgramUserAdmin(UserAdmin):
         'first_name',
         'last_name',
     )
+    readonly_fields = ('all_recipes', 'all_subscribers')
+
+    @admin.display(description='Количество рецептов')
+    def all_recipes(self, obj):
+        return obj.recipes.count()
+
+    @admin.display(description='Количество подписчиков')
+    def all_subscribers(self, obj):
+        return obj.subscribers.count()

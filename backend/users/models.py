@@ -28,3 +28,28 @@ class FoodgramUser(AbstractUser):
 
     def __str__(self) -> str:
         return self.get_full_name()
+
+
+class Subscriptions(models.Model):
+    subscriber = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        related_name='subscriptions'
+    )
+    subscribtion = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        related_name='subscribers'
+    )
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=('subscriber', 'subscribtion'),
+                name='unique_subscriber_subscribtion'
+            ),
+            models.CheckConstraint(
+                name='preventing_self_subscription',
+                check=~models.Q(subscriber=models.F('subscribtion')),
+            )
+        )
