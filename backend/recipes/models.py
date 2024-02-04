@@ -140,7 +140,7 @@ class IngredientInRecipe(models.Model):
             models.UniqueConstraint(
                 fields=('recipe', 'ingredient'),
                 name='unique_recipe_ingredient'
-            )
+            ),
         )
         verbose_name = 'ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецепте'
@@ -161,19 +161,25 @@ class BaseFavourites(models.Model):
 
     class Meta:
         abstract = True
-        constraints = (
-            models.UniqueConstraint(
-                fields=('recipe', 'user'),
-                name='unique_recipe_user'
-            )
-        )
 
 
 class Favourites(BaseFavourites):
-    class Meta(BaseFavourites.Meta):
+    class Meta:
         default_related_name = 'favourites'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe', 'user'),
+                name='unique_recipe_user_favourites'
+            ),
+        )
 
 
 class ShoppingCart(BaseFavourites):
-    class Meta(BaseFavourites.Meta):
+    class Meta:
         default_related_name = 'shopping_cart'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe', 'user'),
+                name='unique_recipe_user_shopping_cart'
+            ),
+        )
