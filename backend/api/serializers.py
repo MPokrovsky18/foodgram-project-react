@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes import constants
-from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
+from recipes import models
 from users.models import Subscriptions
 
 
@@ -38,7 +38,7 @@ class TagSerializer(serializers.ModelSerializer):
     """Serializer for Tag model."""
 
     class Meta:
-        model = Tag
+        model = models.Tag
         fields = ('id', 'name', 'color', 'slug')
 
 
@@ -46,7 +46,7 @@ class IngredientSerializer(serializers.ModelSerializer):
     """Serializer for Ingredient."""
 
     class Meta:
-        model = Ingredient
+        model = models.Ingredient
         fields = ('id', 'name', 'measurement_unit')
 
 
@@ -60,7 +60,7 @@ class IngredientInRecipeGetSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = IngredientInRecipe
+        model = models.IngredientInRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
         read_only_fields = ('id', 'name', 'measurement_unit', 'amount')
 
@@ -73,7 +73,7 @@ class IngredientInRecipePostSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = IngredientInRecipe
+        model = models.IngredientInRecipe
         fields = ('id', 'amount')
 
 
@@ -85,7 +85,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Recipe
+        model = models.Recipe
         fields = (
             'id',
             'tags',
@@ -109,7 +109,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Recipe
+        model = models.Recipe
         fields = (
             'id',
             'tags',
@@ -151,8 +151,8 @@ class RecipePostSerializer(serializers.ModelSerializer):
         instance.tags.clear()
         instance.ingredients.clear()
 
-        IngredientInRecipe.objects.bulk_create([
-            IngredientInRecipe(
+        models.IngredientInRecipe.objects.bulk_create([
+            models.IngredientInRecipe(
                 recipe=instance,
                 ingredient=data_ingredient['id'],
                 amount=data_ingredient['amount']
@@ -163,7 +163,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(
+        recipe = models.Recipe.objects.create(
             author=self.context['request'].user, **validated_data
         )
         self.add_tags_and_ingredients(recipe, tags, ingredients)
@@ -189,7 +189,7 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Recipe
+        model = models.Recipe
         fields = ('id', 'name', 'image', 'cooking_time',)
         read_only_fields = ('id', 'name', 'image', 'cooking_time',)
 
@@ -237,13 +237,13 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscriptions
         field = ('subscriber', 'subscribtion')
-        validators = [
+        validators = (
             UniqueTogetherValidator(
                 queryset=Subscriptions.objects.all(),
                 fields=('subscriber', 'subscribtion'),
                 message='Вы уже подписаны!'
             ),
-        ]
+        )
 
     def to_representation(self, instance):
         return UserWithRecipesSerializer(
@@ -257,3 +257,38 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
             )
 
         return value
+
+
+class BaseFavouritesSerializer(serializers.ModelSerializer):
+    class Meta:
+        abstract = True
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        return RecipeMinifiedSerializer(
+            instance.recipe, context=self.context
+        ).data
+
+
+class FavoriteSerializer(BaseFavouritesSerializer):
+    class Meta(BaseFavouritesSerializer.Meta):
+        model = models.Favourites
+        validators = (
+            UniqueTogetherValidator(
+                queryset=models.Favourites.objects.all(),
+                fields=('user', 'recipe'),
+                message='Рецепт уже добавлен!'
+            ),
+        )
+
+
+class ShoppingCartSerializer(BaseFavouritesSerializer):
+    class Meta(BaseFavouritesSerializer.Meta):
+        model = models.ShoppingCart
+        validators = (
+            UniqueTogetherValidator(
+                queryset=models.ShoppingCart.objects.all(),
+                fields=('user', 'recipe'),
+                message='Рецепт уже добавлен!'
+            ),
+        )
