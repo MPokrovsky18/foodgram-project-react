@@ -23,7 +23,8 @@ class Command(BaseCommand):
         except Exception as exc:
             raise CommandError(exc)
 
-    def load_to_db(self, path, type):
+    @staticmethod
+    def load_to_db(path, type):
         with open(path, 'r', encoding='utf-8') as file:
             data = json.load(file)
 
