@@ -120,7 +120,7 @@ class RecipeViewSet(ModelViewSet):
     def delete_from_favorite(self, request, pk):
         self.delete_recipe_from(request, Favourites, pk)
 
-    @favorite.mapping.delete
+    @shopping_cart.mapping.delete
     def delete_from_shopping_cart(self, request, pk):
         self.delete_recipe_from(request, ShoppingCart, pk)
 
