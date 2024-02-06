@@ -25,7 +25,6 @@ class IngredientAdmin(admin.ModelAdmin):
         'name',
         'measurement_unit',
     )
-    exclude = ('is_archived',)
     search_fields = ('name',)
 
 
@@ -50,8 +49,8 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Список ингредиентов')
     def ingredients_list(self, obj):
-        return '\n'.join(
-            [ingredient for ingredient in obj.ingredient_in_recipe.all()]
+        return ', '.join(
+            [str(ingredient) for ingredient in obj.ingredient_in_recipe.all()]
         )
 
     @admin.display(description="Изображение")
