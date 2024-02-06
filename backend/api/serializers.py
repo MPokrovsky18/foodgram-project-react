@@ -30,7 +30,7 @@ class FoodgramUserSerializer(serializers.ModelSerializer):
         return (
             request
             and request.user.is_authenticated
-            and user.subscribers.filter(id=request.user.id)
+            and user.subscribers.filter(id=request.user.id).exists()
         )
 
 
@@ -67,7 +67,7 @@ class IngredientInRecipeGetSerializer(serializers.ModelSerializer):
 
 class IngredientInRecipePostSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        source='ingredient', read_only=True
+        queryset=models.Ingredient.objects.all()
     )
     amount = serializers.IntegerField(
         min_value=constants.MIN_VALUE,
@@ -83,7 +83,11 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = FoodgramUserSerializer(read_only=True)
     ingredients = IngredientInRecipeGetSerializer(
-        source='ingredientinrecipe_set', many=True
+        source='ingredient_in_recipe', many=True
+    )
+    is_favorited = serializers.BooleanField(read_only=True, default=False)
+    is_in_shopping_cart = serializers.BooleanField(
+        read_only=True, default=False
     )
 
     class Meta:
@@ -173,12 +177,12 @@ class RecipePostSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        instance = super().update(instance, validated_data)
         self.add_tags_and_ingredients(
             instance,
-            validated_data['tags'],
-            validated_data['ingredients']
+            validated_data.pop('tags'),
+            validated_data.pop('ingredients')
         )
+        instance = super().update(instance, validated_data)
 
         return instance
 

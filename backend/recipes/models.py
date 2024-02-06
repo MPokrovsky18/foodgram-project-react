@@ -72,7 +72,7 @@ class Recipe(models.Model):
                          f'не может быть меньше {constants.MIN_VALUE}.')
             ),
             MaxValueValidator(
-                constants.MIN_VALUE,
+                constants.MAX_VALUE,
                 message=('Время приготовления '
                          f'не может быть больше {constants.MAX_VALUE}.')
             ),
@@ -127,7 +127,7 @@ class IngredientInRecipe(models.Model):
                          f'не может быть меньше {constants.MIN_VALUE}.')
             ),
             MaxValueValidator(
-                constants.MIN_VALUE,
+                constants.MAX_VALUE,
                 message=('Количество ингредиента '
                          f'не может быть больше {constants.MAX_VALUE}.')
             ),

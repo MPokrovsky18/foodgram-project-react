@@ -28,9 +28,6 @@ class IngredientAdmin(admin.ModelAdmin):
     exclude = ('is_archived',)
     search_fields = ('name',)
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(is_archived=False)
-
 
 @admin.register(models.Recipe)
 class RecipeAdmin(admin.ModelAdmin):

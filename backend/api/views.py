@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef, F, Sum, Value, IntegerField
+from django.db.models import Exists, F, Sum, Value, IntegerField, OuterRef
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -54,18 +54,21 @@ class RecipeViewSet(ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_queryset(self):
-        return super().get_queryset().annotate(
-            is_favorited=Exists(
-                Favourites.objects.filter(
-                    recipe=OuterRef('pk'), user=self.request.user
-                )
-            ),
-            is_in_shopping_cart=Exists(
-                ShoppingCart.objects.filter(
-                    recipe=OuterRef('pk'), user=self.request.user
+        if self.request.user.is_authenticated:
+            return super().get_queryset().annotate(
+                is_favorited=Exists(
+                    Favourites.objects.filter(
+                        recipe=OuterRef('pk'),
+                        user=self.request.user)
+                ),
+                is_in_shopping_cart=Exists(
+                    ShoppingCart.objects.filter(
+                        recipe=OuterRef('pk'),
+                        user=self.request.user)
                 )
             )
-        )
+
+        return super().get_queryset()
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -110,19 +113,23 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=('post',))
     def favorite(self, request, pk):
-        self.write_recipe_to(request, serializers.FavoriteSerializer, pk)
+        return self.write_recipe_to(
+            request, serializers.FavoriteSerializer, pk
+        )
 
     @action(detail=True, methods=('post',))
     def shopping_cart(self, request, pk):
-        self.write_recipe_to(request, serializers.ShoppingCartSerializer, pk)
+        return self.write_recipe_to(
+            request, serializers.ShoppingCartSerializer, pk
+        )
 
     @favorite.mapping.delete
     def delete_from_favorite(self, request, pk):
-        self.delete_recipe_from(request, Favourites, pk)
+        return self.delete_recipe_from(request, Favourites, pk)
 
     @shopping_cart.mapping.delete
     def delete_from_shopping_cart(self, request, pk):
-        self.delete_recipe_from(request, ShoppingCart, pk)
+        return self.delete_recipe_from(request, ShoppingCart, pk)
 
     @action(detail=False)
     def download_shopping_cart(self, request):
