@@ -30,7 +30,7 @@ class FoodgramUserSerializer(serializers.ModelSerializer):
         return (
             request
             and request.user.is_authenticated
-            and user.subscribers.filter(id=request.user.id).exists()
+            and user.subscribers.filter(subscriber=request.user).exists()
         )
 
 
@@ -235,14 +235,9 @@ class UserWithRecipesSerializer(FoodgramUserSerializer):
 
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
-    subscriber = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault()
-    )
-
     class Meta:
         model = Subscriptions
-        field = ('subscriber', 'subscribtion')
+        fields = ('subscriber', 'subscribtion')
         validators = (
             UniqueTogetherValidator(
                 queryset=Subscriptions.objects.all(),

@@ -59,12 +59,14 @@ class RecipeViewSet(ModelViewSet):
                 is_favorited=Exists(
                     Favourites.objects.filter(
                         recipe=OuterRef('pk'),
-                        user=self.request.user)
+                        user=self.request.user
+                    )
                 ),
                 is_in_shopping_cart=Exists(
                     ShoppingCart.objects.filter(
                         recipe=OuterRef('pk'),
-                        user=self.request.user)
+                        user=self.request.user
+                    )
                 )
             )
 
@@ -173,7 +175,10 @@ class FoodgramUserViewSet(UserViewSet):
     @action(detail=False)
     def subscriptions(self, request):
         """Action to retrieve the list of user subscriptions."""
-        subscriptions = request.user.subscriptions.all()
+        subscriptions = [
+            subscription.subscribtion
+            for subscription in request.user.subscriptions.all()
+        ]
 
         serializer = serializers.UserWithRecipesSerializer(
             self.paginate_queryset(subscriptions),
@@ -184,10 +189,10 @@ class FoodgramUserViewSet(UserViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=('post',))
-    def subscribe(self, request, pk):
+    def subscribe(self, request, id):
         data = {
             'subscriber': request.user.id,
-            'subscribtion': pk
+            'subscribtion': id
         }
         serializer = serializers.SubscriptionsSerializer(
             data=data, context={'request': request}
@@ -201,11 +206,11 @@ class FoodgramUserViewSet(UserViewSet):
         )
 
     @subscribe.mapping.delete
-    def unsubscribe(self, request, pk):
+    def unsubscribe(self, request, id):
         subscription = get_object_or_404(
             Subscriptions,
             subscriber=request.user.id,
-            subscribtion=pk
+            subscribtion=id
         )
         subscription.delete()
         return Response(
