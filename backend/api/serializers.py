@@ -7,6 +7,15 @@ from recipes import constants, models
 from users.models import Subscriptions
 
 
+class CustomBase64ImageField(Base64ImageField):
+    """Custom ImageField for handling base64-encoded images."""
+
+    def to_representation(self, value):
+        if value:
+            return value.url
+        return None
+
+
 class FoodgramUserSerializer(serializers.ModelSerializer):
     """Custom user serializer."""
 
@@ -90,6 +99,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     ingredients = IngredientInRecipeGetSerializer(
         source='ingredient_in_recipe', many=True
     )
+    image = CustomBase64ImageField()
     is_favorited = serializers.BooleanField(read_only=True, default=False)
     is_in_shopping_cart = serializers.BooleanField(
         read_only=True, default=False
@@ -115,7 +125,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
     """Serializer for creating and updating recipe instances."""
 
     ingredients = IngredientInRecipePostSerializer(many=True)
-    image = Base64ImageField()
+    image = CustomBase64ImageField()
     cooking_time = serializers.IntegerField(
         min_value=constants.MIN_VALUE,
         max_value=constants.MAX_VALUE,
