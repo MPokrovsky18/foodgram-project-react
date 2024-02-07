@@ -180,7 +180,6 @@ class FoodgramUserViewSet(UserViewSet):
 
     @action(detail=False)
     def subscriptions(self, request):
-        """Action to retrieve the list of user subscriptions."""
         subscriptions = [
             subscription.subscribtion
             for subscription in request.user.subscriptions.all()

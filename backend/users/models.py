@@ -6,6 +6,8 @@ from users.constants import MAX_CHARFIELD_LENGTH, MAX_EMAIL_LENGTH
 
 
 class FoodgramUser(AbstractUser):
+    """Custom user model."""
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name', 'password')
 
@@ -31,6 +33,8 @@ class FoodgramUser(AbstractUser):
 
 
 class Subscriptions(models.Model):
+    """Model to represent user subscriptions."""
+
     subscriber = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,

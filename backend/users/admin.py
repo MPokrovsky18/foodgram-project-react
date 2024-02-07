@@ -13,6 +13,8 @@ UserAdmin.fieldsets += (
 
 @admin.register(FoodgramUser)
 class FoodgramUserAdmin(UserAdmin):
+    """Custom admin interface for FoodgramUser model."""
+
     list_display = (
         'email',
         'username',

@@ -5,6 +5,8 @@ from recipes import models
 
 
 class RecipeIngredientInline(admin.TabularInline):
+    """Inline admin interface for managing ingredients within a recipe."""
+
     model = models.IngredientInRecipe
     extra = 0
     min_num = 1
@@ -12,6 +14,8 @@ class RecipeIngredientInline(admin.TabularInline):
 
 @admin.register(models.Tag)
 class TagAdmin(admin.ModelAdmin):
+    """Admin interface for managing tags."""
+
     list_display = (
         'name',
         'slug',
@@ -21,6 +25,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(models.Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
+    """Admin interface for managing ingredients."""
+
     list_display = (
         'name',
         'measurement_unit',
@@ -30,6 +36,8 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(models.Recipe)
 class RecipeAdmin(admin.ModelAdmin):
+    """Admin interface for managing recipes."""
+
     list_display = (
         'name',
         'author',

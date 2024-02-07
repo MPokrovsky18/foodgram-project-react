@@ -7,6 +7,8 @@ from recipes import constants
 
 
 class Tag(models.Model):
+    """Model representing a tag."""
+
     name = models.CharField(
         'Название',
         unique=True,
@@ -29,6 +31,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """Model representing an ingredient."""
+
     name = models.CharField(
         'Название',
         max_length=constants.MAX_TEXTFIELD_LENGTH
@@ -57,6 +61,8 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    """Model representing a recipe."""
+
     name = models.CharField(
         'Название',
         max_length=constants.MAX_TEXTFIELD_LENGTH
@@ -109,6 +115,8 @@ class Recipe(models.Model):
 
 
 class IngredientInRecipe(models.Model):
+    """Model representing an ingredient in a recipe."""
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -150,6 +158,12 @@ class IngredientInRecipe(models.Model):
 
 
 class BaseFavourites(models.Model):
+    """
+    Abstract base model.
+
+    Representing a favorite item or a shopping cart item.
+    """
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -170,10 +184,14 @@ class BaseFavourites(models.Model):
 
 
 class Favourites(BaseFavourites):
+    """Model representing a favorite recipe."""
+
     class Meta(BaseFavourites.Meta):
         default_related_name = 'favourites'
 
 
 class ShoppingCart(BaseFavourites):
+    """Model representing an item in the shopping cart."""
+
     class Meta(BaseFavourites.Meta):
         default_related_name = 'shopping_cart'

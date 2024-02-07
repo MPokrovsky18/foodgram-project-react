@@ -9,6 +9,8 @@ PATH_TO_TAGS = './data/tags.json'
 
 
 class Command(BaseCommand):
+    """Custom management command to load data from JSON files."""
+
     def handle(self, *args, **options):
         try:
             for path, type in (
@@ -25,6 +27,7 @@ class Command(BaseCommand):
 
     @staticmethod
     def load_to_db(path, type):
+        """Load data from a JSON file into the specified model."""
         with open(path, 'r', encoding='utf-8') as file:
             data = json.load(file)
 

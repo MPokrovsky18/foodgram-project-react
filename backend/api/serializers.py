@@ -3,8 +3,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from recipes import constants
-from recipes import models
+from recipes import constants, models
 from users.models import Subscriptions
 
 
@@ -51,6 +50,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientInRecipeGetSerializer(serializers.ModelSerializer):
+    """Serializer for retrieving ingredient details in a recipe."""
+
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient', read_only=True
     )
@@ -66,6 +67,8 @@ class IngredientInRecipeGetSerializer(serializers.ModelSerializer):
 
 
 class IngredientInRecipePostSerializer(serializers.ModelSerializer):
+    """Serializer for posting ingredient details in a recipe."""
+
     id = serializers.PrimaryKeyRelatedField(
         queryset=models.Ingredient.objects.all()
     )
@@ -80,6 +83,8 @@ class IngredientInRecipePostSerializer(serializers.ModelSerializer):
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
+    """Serializer for retrieving recipe data."""
+
     tags = TagSerializer(many=True, read_only=True)
     author = FoodgramUserSerializer(read_only=True)
     ingredients = IngredientInRecipeGetSerializer(
@@ -107,6 +112,8 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
 
 class RecipePostSerializer(serializers.ModelSerializer):
+    """Serializer for creating and updating recipe instances."""
+
     ingredients = IngredientInRecipePostSerializer(many=True)
     image = Base64ImageField()
     cooking_time = serializers.IntegerField(
@@ -196,11 +203,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
 
 
 class RecipeMinifiedSerializer(serializers.ModelSerializer):
-    """
-    Minified version of RecipeSerializer.
-
-    Fields: 'id', 'name', 'image', and 'cooking_time'.
-    """
+    """Minified version of RecipeSerializer."""
 
     class Meta:
         model = models.Recipe
@@ -209,6 +212,8 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
 
 
 class UserWithRecipesSerializer(FoodgramUserSerializer):
+    """Serializer for retrieving user data with their recipes."""
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.ReadOnlyField(source='recipes.count')
 
@@ -243,6 +248,8 @@ class UserWithRecipesSerializer(FoodgramUserSerializer):
 
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
+    """Serializer for managing user subscriptions."""
+
     class Meta:
         model = Subscriptions
         fields = ('subscriber', 'subscribtion')
@@ -269,6 +276,12 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
 
 class BaseFavouritesSerializer(serializers.ModelSerializer):
+    """
+    Abstract base serializer.
+
+    Use for managing favorites and shopping cart items.
+    """
+
     class Meta:
         abstract = True
         fields = ('user', 'recipe')
@@ -280,6 +293,8 @@ class BaseFavouritesSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(BaseFavouritesSerializer):
+    """Serializer for managing favorite recipes."""
+
     class Meta(BaseFavouritesSerializer.Meta):
         model = models.Favourites
         validators = (
@@ -292,6 +307,8 @@ class FavoriteSerializer(BaseFavouritesSerializer):
 
 
 class ShoppingCartSerializer(BaseFavouritesSerializer):
+    """Serializer for managing shopping cart items."""
+
     class Meta(BaseFavouritesSerializer.Meta):
         model = models.ShoppingCart
         validators = (
