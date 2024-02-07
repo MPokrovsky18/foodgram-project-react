@@ -1,18 +1,4 @@
-from djoser.permissions import CurrentUserOrAdminOrReadOnly
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
-
-
-class CurrentUserOrAdminOrReadOnly(
-    IsAuthenticatedOrReadOnly, CurrentUserOrAdminOrReadOnly
-):
-    """
-    Combined permission class.
-
-    Allowing read access to unauthenticated users
-    and write access to the current user or admin.
-    """
-
-    pass
 
 
 class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
