@@ -25,7 +25,7 @@ class Tag(models.Model):
         verbose_name_plural = 'Теги'
 
     def __str__(self) -> str:
-        return self.name[:constants.MAX_STRING_LENGHT]
+        return self.name[:constants.MAX_STRING_LENGTH]
 
 
 class Ingredient(models.Model):
@@ -51,7 +51,7 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return (
-            f'{self.name[:constants.MAX_STRING_LENGHT]}'
+            f'{self.name[:constants.MAX_STRING_LENGTH]}'
             f'/{self.measurement_unit}'
         )
 
@@ -105,7 +105,7 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
     def __str__(self) -> str:
-        return self.name[:constants.MAX_STRING_LENGHT]
+        return self.name[:constants.MAX_STRING_LENGTH]
 
 
 class IngredientInRecipe(models.Model):
@@ -161,25 +161,19 @@ class BaseFavourites(models.Model):
 
     class Meta:
         abstract = True
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe', 'user'),
+                name='%(app_label)s_%(class)s_unique_recipe_user'
+            ),
+        )
 
 
 class Favourites(BaseFavourites):
-    class Meta:
+    class Meta(BaseFavourites.Meta):
         default_related_name = 'favourites'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('recipe', 'user'),
-                name='unique_recipe_user_favourites'
-            ),
-        )
 
 
 class ShoppingCart(BaseFavourites):
-    class Meta:
+    class Meta(BaseFavourites.Meta):
         default_related_name = 'shopping_cart'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('recipe', 'user'),
-                name='unique_recipe_user_shopping_cart'
-            ),
-        )
