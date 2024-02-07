@@ -6,6 +6,10 @@ from users.models import FoodgramUser
 
 admin.site.unregister(Group)
 
+UserAdmin.fieldsets += (
+    (None, {'fields': ('all_recipes', 'all_subscribers')}),
+)
+
 
 @admin.register(FoodgramUser)
 class FoodgramUserAdmin(UserAdmin):
