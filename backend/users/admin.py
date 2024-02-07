@@ -1,27 +1,19 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
+
 from users.models import FoodgramUser
 
 admin.site.unregister(Group)
 
 UserAdmin.fieldsets += (
-    ('Списки рецептов', {'fields': ('favorite_recipes', 'shopping_list')}),
-    ('Подписки', {'fields': ('subscriptions',)}),
+    (None, {'fields': ('all_recipes', 'all_subscribers')}),
 )
 
 
 @admin.register(FoodgramUser)
 class FoodgramUserAdmin(UserAdmin):
-    """
-    Admin interface customization for FoodgramUser model.
-
-    List display includes:
-        email, username, first name, last name, is_staff, and is_active.
-
-    Fieldsets include the default UserAdmin fieldsets
-    and additional fields for favorite_recipes and shopping_list.
-    """
+    """Custom admin interface for FoodgramUser model."""
 
     list_display = (
         'email',
@@ -36,3 +28,12 @@ class FoodgramUserAdmin(UserAdmin):
         'first_name',
         'last_name',
     )
+    readonly_fields = ('all_recipes', 'all_subscribers')
+
+    @admin.display(description='Количество рецептов')
+    def all_recipes(self, obj):
+        return obj.recipes.count()
+
+    @admin.display(description='Количество подписчиков')
+    def all_subscribers(self, obj):
+        return obj.subscribers.count()

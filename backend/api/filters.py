@@ -1,5 +1,8 @@
-from django_filters.rest_framework import CharFilter, FilterSet, NumberFilter
-from recipes.models import Ingredient, Recipe
+from django_filters.rest_framework import (
+    CharFilter, FilterSet, NumberFilter, ModelMultipleChoiceFilter
+)
+
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientFilter(FilterSet):
@@ -9,7 +12,7 @@ class IngredientFilter(FilterSet):
 
     class Meta:
         model = Ingredient
-        fields = []
+        fields = ('name',)
 
 
 class RecipeFilter(FilterSet):
@@ -29,31 +32,28 @@ class RecipeFilter(FilterSet):
 
     is_favorited = NumberFilter(method='filter_is_favorited')
     is_in_shopping_cart = NumberFilter(method='filter_is_in_shopping_cart')
-    author = NumberFilter(field_name='author__id')
-    tags = CharFilter(method='filter_tags')
+    tags = ModelMultipleChoiceFilter(
+        queryset=Tag.objects.all(),
+        to_field_name='slug',
+        field_name='tags__slug',
+    )
 
     class Meta:
         model = Recipe
-        fields = []
+        fields = ('is_favorited', 'is_in_shopping_cart', 'author', 'tags')
 
     def filter_is_favorited(self, queryset, name, value):
         current_user = self.request.user
 
-        if current_user.is_authenticated and value == 1:
-            return queryset.filter(favorited_by=current_user)
+        if current_user.is_authenticated and value:
+            return queryset.filter(favourites__user=current_user)
 
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         current_user = self.request.user
 
-        if current_user.is_authenticated:
-            if value == 1:
-                return queryset.filter(added_to_shopping_list_by=current_user)
+        if current_user.is_authenticated and value:
+            return queryset.filter(shopping_cart__user=current_user)
 
         return queryset
-
-    def filter_tags(self, queryset, name, value):
-        return queryset.filter(
-            tags__slug__in=self.data.getlist(name)
-        ).distinct()

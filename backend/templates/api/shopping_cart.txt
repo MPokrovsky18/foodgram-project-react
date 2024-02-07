@@ -1,7 +1,9 @@
 Список покупок пользователя: {{ username }}
-
-{% for ingredient, amount in ingredients_amount.items %}
-{{ ingredient }} - {{ amount }}{% endfor %}
-
----
-Foodgram
+-------------------------------------------
+|Название ингредиента   |Ед.изм.|Количество
+-------------------------------------------
+{% for ingredient in ingredients %}
+| {{ ingredient.name|ljust:21 }} | {{ ingredient.measurement_unit|ljust:5 }} | {{ ingredient.amount }}
+{% endfor %}
+-------------------------------------------
+Скачано из Foodgram
