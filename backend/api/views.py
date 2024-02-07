@@ -3,7 +3,7 @@ from django.db.models import Exists, F, Sum, Value, IntegerField, OuterRef
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
+
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -14,6 +14,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from api import serializers
 from api.filters import IngredientFilter, RecipeFilter
+from api.ingredient_utls import get_ingredients_to_txt
 from api.permissions import IsAuthorOrReadOnly
 from recipes.models import (
     Ingredient, IngredientInRecipe, Recipe, Tag, Favourites, ShoppingCart
@@ -158,13 +159,7 @@ class RecipeViewSet(ModelViewSet):
         ).order_by('name')
 
         return HttpResponse(
-            render_to_string(
-                'api/shopping_cart.txt',
-                {
-                    'ingredients': ingredients,
-                    'username': request.user.username
-                }
-            ),
+            get_ingredients_to_txt(request.user, ingredients),
             content_type='text/plain'
         )
 
