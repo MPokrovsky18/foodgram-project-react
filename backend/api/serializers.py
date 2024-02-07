@@ -126,6 +126,14 @@ class RecipePostSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Изображение - обязательное поле.'
+            )
+
+        return value
+
     def to_representation(self, instance):
         return RecipeGetSerializer(instance, context=self.context).data
 
@@ -251,13 +259,13 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
             instance.subscribtion, context=self.context
         ).data
 
-    def validate_subscription(self, value):
-        if self.context['request'].user == value:
+    def validate(self, data):
+        if self.context['request'].user == data['subscribtion']:
             raise serializers.ValidationError(
                 'Вы не можете подписаться на самого себя.'
             )
 
-        return value
+        return data
 
 
 class BaseFavouritesSerializer(serializers.ModelSerializer):

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, Sum, Value, IntegerField, OuterRef
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
@@ -105,10 +106,20 @@ class RecipeViewSet(ModelViewSet):
 
     @staticmethod
     def delete_recipe_from(request, source_model, pk):
-        delete_recipe = get_object_or_404(
-            source_model, recipe=pk, user=request.user.id
-        )
-        delete_recipe.delete()
+        target_recipe = get_object_or_404(Recipe, id=pk)
+
+        try:
+            target_to_delete = source_model.objects.get(
+                recipe=target_recipe,
+                user=request.user
+            )
+        except source_model.DoesNotExist:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        target_to_delete.delete()
+
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
@@ -190,9 +201,13 @@ class FoodgramUserViewSet(UserViewSet):
 
     @action(detail=True, methods=('post',))
     def subscribe(self, request, id):
+        author = get_object_or_404(
+            get_user_model(), id=id
+        )
+
         data = {
             'subscriber': request.user.id,
-            'subscribtion': id
+            'subscribtion': author.id
         }
         serializer = serializers.SubscriptionsSerializer(
             data=data, context={'request': request}
@@ -207,12 +222,20 @@ class FoodgramUserViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
-        subscription = get_object_or_404(
-            Subscriptions,
-            subscriber=request.user.id,
-            subscribtion=id
-        )
-        subscription.delete()
+        author = get_object_or_404(get_user_model(), id=id)
+
+        try:
+            target_to_delete = Subscriptions.objects.get(
+                subscribtion=author,
+                subscriber=request.user
+            )
+        except Subscriptions.DoesNotExist:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        target_to_delete.delete()
+
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
