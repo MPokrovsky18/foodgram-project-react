@@ -16,7 +16,8 @@ services:
     image: maxpokrovsky/foodgram_backend
     env_file: .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: on-failure
     volumes:
       - static_volume:/backend_static
