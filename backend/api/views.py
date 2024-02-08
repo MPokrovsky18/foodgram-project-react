@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, Sum, Value, IntegerField, OuterRef
 from django.db.models.functions import Coalesce
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -105,7 +104,6 @@ class RecipeViewSet(ModelViewSet):
 
     @staticmethod
     def delete_recipe_from(request, source_model, pk):
-        get_object_or_404(Recipe, id=pk)
         target_to_delete = source_model.objects.filter(
             recipe=pk,
             user=request.user
@@ -175,7 +173,7 @@ class FoodgramUserViewSet(UserViewSet):
     @action(detail=False)
     def subscriptions(self, request):
         authors = get_user_model().objects.filter(
-            subscribers__subscriber=request.user
+            subscriptions_to_author__subscriber=request.user
         )
         serializer = serializers.UserWithRecipesSerializer(
             self.paginate_queryset(authors),
@@ -187,7 +185,6 @@ class FoodgramUserViewSet(UserViewSet):
 
     @action(detail=True, methods=('post',))
     def subscribe(self, request, id):
-        get_object_or_404(get_user_model(), id=id)
         data = {
             'subscriber': request.user.id,
             'author': id
@@ -205,7 +202,6 @@ class FoodgramUserViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
-        get_object_or_404(get_user_model(), id=id)
         target_to_delete = Subscriptions.objects.filter(
             author=id,
             subscriber=request.user

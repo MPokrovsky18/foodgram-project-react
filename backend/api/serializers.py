@@ -38,7 +38,9 @@ class FoodgramUserSerializer(serializers.ModelSerializer):
         return (
             request
             and request.user.is_authenticated
-            and user.subscribers.filter(subscriber=request.user).exists()
+            and user.subscriptions_to_author.filter(
+                subscriber=request.user
+            ).exists()
         )
 
 
@@ -197,9 +199,6 @@ class RecipePostSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def add_tags_and_ingredients(instance, tags, ingredients):
-        instance.tags.clear()
-        instance.ingredients.clear()
-
         models.IngredientInRecipe.objects.bulk_create([
             models.IngredientInRecipe(
                 recipe=instance,
@@ -220,6 +219,8 @@ class RecipePostSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        instance.tags.clear()
+        instance.ingredients.clear()
         self.add_tags_and_ingredients(
             instance,
             validated_data.pop('tags'),
@@ -320,19 +321,23 @@ class BaseFavouritesSerializer(serializers.ModelSerializer):
             instance.recipe, context=self.context
         ).data
 
+    def validate(self, data):
+        if self.Meta.model.objects.filter(
+            recipe=data.get('recipe'),
+            user=data.get('user')
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен!'
+            )
+
+        return data
+
 
 class FavoriteSerializer(BaseFavouritesSerializer):
     """Serializer for managing favorite recipes."""
 
     class Meta(BaseFavouritesSerializer.Meta):
         model = models.Favourites
-        validators = (
-            UniqueTogetherValidator(
-                queryset=models.Favourites.objects.all(),
-                fields=('user', 'recipe'),
-                message='Рецепт уже добавлен!'
-            ),
-        )
 
 
 class ShoppingCartSerializer(BaseFavouritesSerializer):
@@ -340,10 +345,3 @@ class ShoppingCartSerializer(BaseFavouritesSerializer):
 
     class Meta(BaseFavouritesSerializer.Meta):
         model = models.ShoppingCart
-        validators = (
-            UniqueTogetherValidator(
-                queryset=models.ShoppingCart.objects.all(),
-                fields=('user', 'recipe'),
-                message='Рецепт уже добавлен!'
-            ),
-        )

@@ -38,13 +38,13 @@ class Subscriptions(models.Model):
     author = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
-        related_name='subscribers',
+        related_name='subscriptions_to_author',
         verbose_name='Автор рецепта'
     )
     subscriber = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
-        related_name='subscriptions',
+        related_name='user_subscriptions',
         verbose_name='Подписчик'
     )
 

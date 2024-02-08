@@ -38,4 +38,4 @@ class FoodgramUserAdmin(UserAdmin):
 
     @admin.display(description='Количество подписчиков')
     def all_subscribers(self, obj):
-        return obj.subscribers.count()
+        return obj.subscriptions_to_author.count()
