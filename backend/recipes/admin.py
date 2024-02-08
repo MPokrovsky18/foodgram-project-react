@@ -41,6 +41,9 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
+        'total_favorites',
+        'recipe_image',
+        'ingredients_list',
     )
     search_fields = (
         'name',
@@ -62,5 +65,5 @@ class RecipeAdmin(admin.ModelAdmin):
         )
 
     @admin.display(description="Изображение")
-    def image(self, obj):
+    def recipe_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="80" height="60">')

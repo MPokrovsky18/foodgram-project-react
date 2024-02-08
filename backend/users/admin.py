@@ -20,6 +20,8 @@ class FoodgramUserAdmin(UserAdmin):
         'username',
         'first_name',
         'last_name',
+        'all_recipes',
+        'all_subscribers',
         'is_staff',
         'is_active',
     )

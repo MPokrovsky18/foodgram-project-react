@@ -61,18 +61,16 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientInRecipeGetSerializer(serializers.ModelSerializer):
     """Serializer for retrieving ingredient details in a recipe."""
 
-    id = serializers.PrimaryKeyRelatedField(
-        source='ingredient', read_only=True
-    )
-    name = serializers.CharField(source='ingredient.name')
-    measurement_unit = serializers.CharField(
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
 
     class Meta:
         model = models.IngredientInRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
-        read_only_fields = ('id', 'name', 'measurement_unit', 'amount')
+        read_only_fields = ('amount',)
 
 
 class IngredientInRecipePostSerializer(serializers.ModelSerializer):
@@ -84,6 +82,16 @@ class IngredientInRecipePostSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField(
         min_value=constants.MIN_VALUE,
         max_value=constants.MAX_VALUE,
+        error_messages={
+            'min_value': (
+                'Количество ингредиента '
+                f'не может быть меньше {constants.MIN_VALUE}.'
+            ),
+            'max_value': (
+                'Количество ингредиента '
+                f'не может быть больше {constants.MAX_VALUE}.'
+            ),
+        }
     )
 
     class Meta:
@@ -129,6 +137,16 @@ class RecipePostSerializer(serializers.ModelSerializer):
     cooking_time = serializers.IntegerField(
         min_value=constants.MIN_VALUE,
         max_value=constants.MAX_VALUE,
+        error_messages={
+            'min_value': (
+                'Время приготовления '
+                f'не может быть меньше {constants.MIN_VALUE}.'
+            ),
+            'max_value': (
+                'Время приготовления '
+                f'не может быть больше {constants.MAX_VALUE}.'
+            ),
+        }
     )
 
     class Meta:
@@ -175,7 +193,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
                 'Теги не должны повторяться.'
             )
 
-        return super().validate(data)
+        return data
 
     @staticmethod
     def add_tags_and_ingredients(instance, tags, ingredients):
@@ -207,9 +225,8 @@ class RecipePostSerializer(serializers.ModelSerializer):
             validated_data.pop('tags'),
             validated_data.pop('ingredients')
         )
-        instance = super().update(instance, validated_data)
 
-        return instance
+        return super().update(instance, validated_data)
 
 
 class RecipeMinifiedSerializer(serializers.ModelSerializer):
@@ -246,11 +263,11 @@ class UserWithRecipesSerializer(FoodgramUserSerializer):
             'request'
         ].query_params.get('recipes_limit')
 
-        try:
-            if recipes_limit and recipes_limit.isdigit():
+        if recipes_limit:
+            try:
                 recipes = recipes[:int(recipes_limit)]
-        except ValueError:
-            pass
+            except ValueError:
+                pass
 
         return RecipeMinifiedSerializer(
             recipes, many=True, context=self.context
@@ -262,22 +279,22 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscriptions
-        fields = ('subscriber', 'subscribtion')
+        fields = ('subscriber', 'author')
         validators = (
             UniqueTogetherValidator(
                 queryset=Subscriptions.objects.all(),
-                fields=('subscriber', 'subscribtion'),
+                fields=('subscriber', 'author'),
                 message='Вы уже подписаны!'
             ),
         )
 
     def to_representation(self, instance):
         return UserWithRecipesSerializer(
-            instance.subscribtion, context=self.context
+            instance.author, context=self.context
         ).data
 
     def validate(self, data):
-        if self.context['request'].user == data['subscribtion']:
+        if self.context['request'].user == data['author']:
             raise serializers.ValidationError(
                 'Вы не можете подписаться на самого себя.'
             )

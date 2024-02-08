@@ -35,25 +35,33 @@ class FoodgramUser(AbstractUser):
 class Subscriptions(models.Model):
     """Model to represent user subscriptions."""
 
+    author = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        related_name='subscribers',
+        verbose_name='Автор рецепта'
+    )
     subscriber = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
-        related_name='subscriptions'
-    )
-    subscribtion = models.ForeignKey(
-        FoodgramUser,
-        on_delete=models.CASCADE,
-        related_name='subscribers'
+        related_name='subscriptions',
+        verbose_name='Подписчик'
     )
 
     class Meta:
+        ordering = ('author',)
+        verbose_name = 'подписка'
+        verbose_name_plural = 'Подписки'
         constraints = (
             models.UniqueConstraint(
-                fields=('subscriber', 'subscribtion'),
-                name='unique_subscriber_subscribtion'
+                fields=('subscriber', 'author'),
+                name='unique_subscriber_author'
             ),
             models.CheckConstraint(
                 name='preventing_self_subscription',
-                check=~models.Q(subscriber=models.F('subscribtion')),
+                check=~models.Q(subscriber=models.F('author')),
             )
         )
+
+    def __str__(self):
+        return f'{self.subscriber.username} > {self.author.username}'

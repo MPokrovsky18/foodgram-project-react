@@ -1,9 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, F, Sum, Value, IntegerField, OuterRef
 from django.db.models.functions import Coalesce
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -14,7 +12,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from api import serializers
 from api.filters import IngredientFilter, RecipeFilter
-from api.ingredient_utls import get_ingredients_to_txt
+from api.shopping_cart_renderer import render_shopping_cart_as_txt
 from api.permissions import IsAuthorOrReadOnly
 from recipes.models import (
     Ingredient, IngredientInRecipe, Recipe, Tag, Favourites, ShoppingCart
@@ -107,22 +105,21 @@ class RecipeViewSet(ModelViewSet):
 
     @staticmethod
     def delete_recipe_from(request, source_model, pk):
-        target_recipe = get_object_or_404(Recipe, id=pk)
+        get_object_or_404(Recipe, id=pk)
+        target_to_delete = source_model.objects.filter(
+            recipe=pk,
+            user=request.user
+        )
 
-        try:
-            target_to_delete = source_model.objects.get(
-                recipe=target_recipe,
-                user=request.user
-            )
-        except source_model.DoesNotExist:
+        if target_to_delete:
+            target_to_delete.delete()
+
             return Response(
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_204_NO_CONTENT
             )
-
-        target_to_delete.delete()
 
         return Response(
-            status=status.HTTP_204_NO_CONTENT
+            status=status.HTTP_400_BAD_REQUEST
         )
 
     @action(detail=True, methods=('post',))
@@ -158,10 +155,7 @@ class RecipeViewSet(ModelViewSet):
             )
         ).order_by('name')
 
-        return HttpResponse(
-            get_ingredients_to_txt(request.user, ingredients),
-            content_type='text/plain'
-        )
+        return render_shopping_cart_as_txt(request.user, ingredients)
 
 
 class FoodgramUserViewSet(UserViewSet):
@@ -181,7 +175,7 @@ class FoodgramUserViewSet(UserViewSet):
     @action(detail=False)
     def subscriptions(self, request):
         subscriptions = [
-            subscription.subscribtion
+            subscription.author
             for subscription in request.user.subscriptions.all()
         ]
 
@@ -201,7 +195,7 @@ class FoodgramUserViewSet(UserViewSet):
 
         data = {
             'subscriber': request.user.id,
-            'subscribtion': author.id
+            'author': author.id
         }
         serializer = serializers.SubscriptionsSerializer(
             data=data, context={'request': request}
@@ -220,7 +214,7 @@ class FoodgramUserViewSet(UserViewSet):
 
         try:
             target_to_delete = Subscriptions.objects.get(
-                subscribtion=author,
+                author=author,
                 subscriber=request.user
             )
         except Subscriptions.DoesNotExist:
