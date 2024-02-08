@@ -69,7 +69,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField('Изображение', upload_to='recipes/images/')
     text = models.TextField('Описание')
-    cooking_time = models.SmallIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления',
         validators=(
             MinValueValidator(
@@ -120,12 +120,14 @@ class IngredientInRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        verbose_name='Рецепт',
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиент',
     )
-    amount = models.SmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         'Количество',
         default=constants.MIN_VALUE,
         validators=(
@@ -152,12 +154,13 @@ class IngredientInRecipe(models.Model):
         )
         verbose_name = 'ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецепте'
+        ordering = ('recipe', 'ingredient')
 
     def __str__(self) -> str:
         return f'{self.ingredient} - {self.amount}'
 
 
-class BaseFavourites(models.Model):
+class BaseRecipeUser(models.Model):
     """
     Abstract base model.
 
@@ -167,14 +170,17 @@ class BaseFavourites(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        verbose_name='Рецепт',
     )
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
+        verbose_name='Пользователь',
     )
 
     class Meta:
         abstract = True
+        ordering = ('recipe',)
         constraints = (
             models.UniqueConstraint(
                 fields=('recipe', 'user'),
@@ -182,16 +188,23 @@ class BaseFavourites(models.Model):
             ),
         )
 
+    def __str__(self) -> str:
+        return f'{self.recipe} - {self.user}'
 
-class Favourites(BaseFavourites):
+
+class Favourites(BaseRecipeUser):
     """Model representing a favorite recipe."""
 
-    class Meta(BaseFavourites.Meta):
+    class Meta(BaseRecipeUser.Meta):
         default_related_name = 'favourites'
+        verbose_name = 'избранное'
+        verbose_name_plural = 'Избранное'
 
 
-class ShoppingCart(BaseFavourites):
+class ShoppingCart(BaseRecipeUser):
     """Model representing an item in the shopping cart."""
 
-    class Meta(BaseFavourites.Meta):
+    class Meta(BaseRecipeUser.Meta):
         default_related_name = 'shopping_cart'
+        verbose_name = 'список покупок'
+        verbose_name_plural = 'Списки покупок'
