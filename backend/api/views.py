@@ -174,13 +174,11 @@ class FoodgramUserViewSet(UserViewSet):
 
     @action(detail=False)
     def subscriptions(self, request):
-        subscriptions = [
-            subscription.author
-            for subscription in request.user.subscriptions.all()
-        ]
-
+        authors = get_user_model().objects.filter(
+            subscribers__subscriber=request.user
+        )
         serializer = serializers.UserWithRecipesSerializer(
-            self.paginate_queryset(subscriptions),
+            self.paginate_queryset(authors),
             many=True,
             context={'request': request}
         )
@@ -189,13 +187,10 @@ class FoodgramUserViewSet(UserViewSet):
 
     @action(detail=True, methods=('post',))
     def subscribe(self, request, id):
-        author = get_object_or_404(
-            get_user_model(), id=id
-        )
-
+        get_object_or_404(get_user_model(), id=id)
         data = {
             'subscriber': request.user.id,
-            'author': author.id
+            'author': id
         }
         serializer = serializers.SubscriptionsSerializer(
             data=data, context={'request': request}
@@ -210,20 +205,19 @@ class FoodgramUserViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
-        author = get_object_or_404(get_user_model(), id=id)
+        get_object_or_404(get_user_model(), id=id)
+        target_to_delete = Subscriptions.objects.filter(
+            author=id,
+            subscriber=request.user
+        )
 
-        try:
-            target_to_delete = Subscriptions.objects.get(
-                author=author,
-                subscriber=request.user
-            )
-        except Subscriptions.DoesNotExist:
+        if target_to_delete:
+            target_to_delete.delete()
+
             return Response(
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_204_NO_CONTENT
             )
-
-        target_to_delete.delete()
 
         return Response(
-            status=status.HTTP_204_NO_CONTENT
+            status=status.HTTP_400_BAD_REQUEST
         )
